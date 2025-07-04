@@ -31,9 +31,9 @@ echo "All required tools are available."
 echo .
 
 
-REM Generate/Update POT file (translation template)
+REM Generate/Update template file 
 
-set "POT_FILE=.\l10n\koreader.pot"
+set "POT_FILE=.\l10n\template.txt"
 echo "Generating or updating POT file: %POT_FILE%"
 mkdir "%~dp0l10n" >nul 2>&1
 
@@ -57,7 +57,14 @@ REM Generate POT file
 for /f "delims=" %%f in (lua_files.tmp) do (
     set "LUA_FILE_LIST=!LUA_FILE_LIST! "%%f""
 )
-xgettext --language=Lua --from-code=UTF-8 --keyword=_  --no-location  --output="%POT_FILE%" %LUA_FILE_LIST%
+
+SET "EXCLUDE_OPTION="
+set "EXCLUDE_POT=.\l10n\koreader.pot"
+if exist "%EXCLUDE_POT%" (
+    set "EXCLUDE_OPTION=--exclude-file l10n/koreader.pot"
+)
+
+xgettext --language=Lua --from-code=UTF-8 --keyword=_  --no-location %EXCLUDE_OPTION% --output="%POT_FILE%" %LUA_FILE_LIST%
 if errorlevel 1 (
     echo "Error: Failed to generate POT file" >&2
     del lua_files.tmp >nul 2>&1
@@ -119,11 +126,12 @@ xcopy l10n projecttitle.koplugin\l10n /s /i
 REM cleanup unwanted
 del /q projecttitle.koplugin\resources\collage.jpg
 del /q projecttitle.koplugin\resources\licenses.txt
+del /q projecttitle.koplugin\l10n\koreader.pot
 
 REM zip the folder
 7z a -tzip projecttitle.zip projecttitle.koplugin
 
 REM delete the folder
-rmdir /s /q projecttitle.koplugin
+::rmdir /s /q projecttitle.koplugin
 
 pause
